@@ -21,8 +21,3 @@ variable "private_subnets" {
   description = "VPC private subnets"
   type        = list(any)
 }
-
-variable "rolearn" {
-  description = "Add admin role to the aws-auth configmap"
-  type = string
-}

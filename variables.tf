@@ -21,8 +21,3 @@ variable "cluster_name" {
   type    = string
   default = "quixada"
 }
-
-variable "rolearn" {
-  description = "Add admin role to the aws-auth configmap"
-  type        = string
-}
