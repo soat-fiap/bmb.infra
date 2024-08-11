@@ -1,11 +1,11 @@
-# terraform {
-#   backend "remote" {
-#     organization = "FiapPostech-SOAT"
-#     workspaces {
-#       name = "bmb-infra"
-#     }
-#   }
-# }
+terraform {
+  backend "remote" {
+    organization = "FiapPostech-SOAT"
+    workspaces {
+      name = "bmb-infra"
+    }
+  }
+}
 
 # provider "aws" {
 #   profile = var.profile
