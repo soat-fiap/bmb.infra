@@ -24,5 +24,5 @@ variable "cluster_name" {
 
 variable "rolearn" {
   description = "Add admin role to the aws-auth configmap"
-  type = string
+  type        = string
 }
