@@ -1,23 +1,17 @@
-terraform {
-  backend "remote" {
-    # The name of your Terraform Cloud organization.
-    organization = "FiapPostech-SOAT"
+# terraform {
+#   backend "remote" {
+#     organization = "FiapPostech-SOAT"
+#     workspaces {
+#       name = "bmb-infra"
+#     }
+#   }
+# }
 
-    # The name of the Terraform Cloud workspace to store Terraform state files in.
-    workspaces {
-      name = "bmb-infra"
-    }
-  }
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "5.62.0"
-    }
-  }
-
-  required_version = ">= 1.2.0"
-}
+# provider "aws" {
+#   profile = var.profile
+#   region  = "us-east-1"
+#   alias   = "us-east-1"
+# }
 
 module "vpc" {
   source = "./modules/vpc"
