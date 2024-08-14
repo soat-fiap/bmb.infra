@@ -12,7 +12,7 @@ module "vpc" {
 
   region  = var.region
   profile = var.profile
-  name    = "${var.eks_vpc_name}"
+  name    = var.eks_vpc_name
 }
 
 module "eks" {
