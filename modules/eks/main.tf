@@ -1,17 +1,15 @@
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.23.0"
+  version = "~> 20.23.0"
 
   cluster_name    = var.cluster_name
   cluster_version = "1.30"
 
   cluster_endpoint_public_access = true
 
-
   create_kms_key              = false
   create_cloudwatch_log_group = true
   cluster_encryption_config   = {}
-
 
   cluster_addons = {
     coredns = {
@@ -51,6 +49,7 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   tags = {
-    Terraform = true
+    Terraform = "true"
+    Created   = timestamp()
   }
 }

@@ -1,5 +1,7 @@
-variable "app_name" {
+variable "name" {
+  description = "Load balancer controller name"
   type = string
+  default = "techchallenge-internal"
 }
 
 ################################################################################
@@ -9,10 +11,6 @@ variable "app_name" {
 variable "region" {
   type    = string
 }
-
-# variable "env_name" {
-#   type    = string
-# }
 
 variable "cluster_name" {
   type    = string
