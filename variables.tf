@@ -1,7 +1,7 @@
 variable "eks_vpc_name" {
   description = "VPC name"
   type        = string
-  default     = "eks-fiap"
+  default     = "eks-fiap-vpc"
 }
 
 variable "profile" {
