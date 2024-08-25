@@ -1,6 +1,6 @@
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.12.1"
+  version = "~> 5.12.1"
 
   name = var.name
 
@@ -9,8 +9,8 @@ module "vpc" {
   public_subnets   = ["10.0.101.0/24", "10.0.102.0/24"]
   database_subnets = ["10.0.201.0/24", "10.0.202.0/24"]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  enable_nat_gateway = false
+  single_nat_gateway = false
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1

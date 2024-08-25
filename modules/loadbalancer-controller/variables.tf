@@ -1,5 +1,7 @@
-variable "app_name" {
+variable "name" {
+  description = "Load balancer controller name"
   type = string
+  default = "bmb-internal-connection"
 }
 
 variable "enabled" {
@@ -14,10 +16,6 @@ variable "enabled" {
 variable "region" {
   type = string
 }
-
-# variable "env_name" {
-#   type    = string
-# }
 
 variable "cluster_name" {
   type = string

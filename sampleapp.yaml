@@ -1,0 +1,40 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: nlb-sample-app
+#   # namespace: nlb-sample-app
+# spec:
+#   replicas: 3
+#   selector:
+#     matchLabels:
+#       app: nginx
+#   template:
+#     metadata:
+#       labels:
+#         app: nginx
+#     spec:
+#       containers:
+#         - name: nginx
+#           image: public.ecr.aws/nginx/nginx:1.23
+#           ports:
+#             - name: tcp
+#               containerPort: 80
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nlb-sample-app
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: sampleapi-container
+          image: italopessoa/sampleapi:v1

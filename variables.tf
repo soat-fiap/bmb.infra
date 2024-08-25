@@ -1,7 +1,7 @@
 variable "eks_vpc_name" {
   description = "VPC name"
   type        = string
-  default     = "eks-fiap"
+  default     = "eks-fiap-vpc"
 }
 
 variable "profile" {
@@ -15,7 +15,6 @@ variable "region" {
   type        = string
   default     = "us-east-1"
 }
-
 
 variable "cluster_name" {
   type    = string

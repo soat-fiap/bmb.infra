@@ -1,8 +1,9 @@
 # load balancer controller role
 module "lb_role" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.44.0"
 
-  role_name                              = "${var.app_name}_eks_lb"
+  role_name                              = "${var.name}_eks_lb"
   attach_load_balancer_controller_policy = true
 
   oidc_providers = {
@@ -14,6 +15,7 @@ module "lb_role" {
 }
 
 resource "kubernetes_service_account" "service-account" {
+  depends_on = [module.lb_role]
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
@@ -47,10 +49,10 @@ resource "helm_release" "alb-controller" {
   }
 
   # https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html
-#   set {
-#     name  = "image.repository"
-#     value = "602401143452.dkr.ecr.${var.region}.amazonaws.com/amazon/aws-load-balancer-controller"
-#   }
+  #   set {
+  #     name  = "image.repository"
+  #     value = "602401143452.dkr.ecr.${var.region}.amazonaws.com/amazon/aws-load-balancer-controller"
+  #   }
 
   set {
     name  = "serviceAccount.create"
@@ -65,5 +67,27 @@ resource "helm_release" "alb-controller" {
   set {
     name  = "clusterName"
     value = var.cluster_name
+  }
+}
+
+resource "kubernetes_service" "bmb-api-svc" {
+  depends_on = [helm_release.alb-controller]
+  metadata {
+    name = "nlb-controller-service"
+    annotations = {
+      "service.beta.kubernetes.io/aws-load-balancer-name" = "${var.name}-nlb"
+    }
+  }
+  spec {
+    port {
+      port       = 80
+      target_port = 8080
+      node_port   = 30000
+      protocol   = "TCP"
+    }
+    type = "LoadBalancer"
+    selector = {
+      app : "nginx"
+    }
   }
 }
