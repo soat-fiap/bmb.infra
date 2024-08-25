@@ -31,12 +31,13 @@ resource "kubernetes_service_account" "service-account" {
 }
 
 resource "helm_release" "alb-controller" {
-  name       = "aws-load-balancer-controller"
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "aws-load-balancer-controller"
-
-  namespace  = "kube-system"
-  depends_on = [kubernetes_service_account.service-account]
+  name         =  "aws-load-balancer-controller"
+  repository   = "https://aws.github.io/eks-charts"
+  chart        = "aws-load-balancer-controller"
+  version      = "~> 1.8.2"
+  force_update = true
+  namespace    = "kube-system"
+  depends_on   = [kubernetes_service_account.service-account]
 
   set {
     name  = "region"
@@ -73,17 +74,17 @@ resource "helm_release" "alb-controller" {
 resource "kubernetes_service" "bmb-api-svc" {
   depends_on = [helm_release.alb-controller]
   metadata {
-    name = "nlb-controller-service"
+    name = "nlb-controller-svc"
     annotations = {
-      "service.beta.kubernetes.io/aws-load-balancer-name" = "${var.name}-nlb"
+      "service.beta.kubernetes.io/aws-load-balancer-name" = "${var.name}"
     }
   }
   spec {
     port {
-      port       = 80
+      port        = 80
       target_port = 8080
       node_port   = 30000
-      protocol   = "TCP"
+      protocol    = "TCP"
     }
     type = "LoadBalancer"
     selector = {

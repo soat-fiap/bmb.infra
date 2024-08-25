@@ -29,7 +29,7 @@ module "loadbalancer-controller" {
   depends_on        = [module.eks]
   source            = "./modules/loadbalancer-controller"
   oidc_provider_arn = module.eks.oidc_provider_arn
-  name              = "techchallenge-loadbalancer-controller"
+  name              = "bmb-nlb-controller"
   cluster_name      = module.eks.cluster_name
   region            = var.region
   vpc_id            = module.vpc.vpc_id
