@@ -1,7 +1,7 @@
 variable "name" {
   description = "Load balancer controller name"
-  type = string
-  default = "bmb-internal-connection"
+  type        = string
+  nullable = false
 }
 
 variable "enabled" {
@@ -9,6 +9,10 @@ variable "enabled" {
   default = true
 }
 
+variable "create" {
+  type    = bool
+  default = false
+}
 ################################################################################
 # General Variables from root module
 ################################################################################
