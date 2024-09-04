@@ -1,21 +1,87 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: nlb-sample-app
+#   # namespace: nlb-sample-app
+# spec:
+#   replicas: 3
+#   selector:
+#     matchLabels:
+#       app: nginx
+#   template:
+#     metadata:
+#       labels:
+#         app: nginx
+#     spec:
+#       containers:
+#         - name: nginx
+#           image: public.ecr.aws/nginx/nginx:1.23
+#           ports:
+#             - name: tcp
+#               containerPort: 80
+
+
+# resource "kubernetes_service" "bmb-api-svc" {
+#   depends_on = [helm_release.alb-controller]
+#   metadata {
+#     name = "nlb-controller-svc"
+#     annotations = {
+#       "service.beta.kubernetes.io/aws-load-balancer-name" = "${var.name}"
+#     }
+#   }
+#   spec {
+#     port {
+#       port        = 80
+#       target_port = 8080
+#       node_port   = 30000
+#       protocol    = "TCP"
+#     }
+#     type = "LoadBalancer"
+#     selector = {
+#       app : "nginx"
+#     }
+#   }
+# }
+
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nlb-sample-service
+#   # namespace: nlb-sample-app
+#   annotations:
+#     service.beta.kubernetes.io/aws-load-balancer-name: bmb-nlb-controller
+#     #   service.beta.kubernetes.io/aws-load-balancer-type: external
+#     #   service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+#     # service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+#     # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+#     # service.beta.kubernetes.io/aws-load-balancer-subnets: subnet-05243ed09994e977d,subnet-07966fffd199c63f0
+# spec:
+#   ports:
+#     - port: 80
+#       targetPort: 8080
+#       nodePort: 30000
+#       protocol: TCP
+#   type: LoadBalancer
+#   selector:
+#     app: bmb-api
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nlb-sample-app
-  # namespace: nlb-sample-app
+  labels:
+    app: bmb-api
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: bmb-api
   template:
     metadata:
       labels:
-        app: nginx
+        app: bmb-api
     spec:
       containers:
-        - name: nginx
-          image: public.ecr.aws/nginx/nginx:1.23
-          ports:
-            - name: tcp
-              containerPort: 80
+        - name: bmb-api-container
+          image: italopessoa/sampleapi:v2

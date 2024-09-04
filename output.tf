@@ -27,6 +27,10 @@ output "private_subnets_cidr_blocks" {
   value       = module.vpc.private_subnets_cidr_blocks
 }
 
+output "database_subnets" {
+  value = module.vpc.database_subnets
+}
+
 
 ################################################################################
 # EKS Cluster
@@ -56,4 +60,3 @@ output "oidc_provider_arn" {
   description = "The ARN of the OIDC Provider if `enable_irsa = true`"
   value       = module.eks.oidc_provider_arn
 }
-

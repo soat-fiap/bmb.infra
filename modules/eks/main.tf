@@ -50,6 +50,5 @@ module "eks" {
 
   tags = {
     Terraform = "true"
-    Created   = timestamp()
   }
 }

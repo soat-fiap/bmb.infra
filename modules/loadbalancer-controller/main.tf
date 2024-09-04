@@ -1,7 +1,7 @@
 # load balancer controller role
 module "lb_role" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.44.0"
+  source      = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version     = "~> 5.44.0"
 
   role_name                              = "${var.name}_eks_lb"
   attach_load_balancer_controller_policy = true
@@ -16,6 +16,7 @@ module "lb_role" {
 
 resource "kubernetes_service_account" "service-account" {
   depends_on = [module.lb_role]
+
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
@@ -31,12 +32,14 @@ resource "kubernetes_service_account" "service-account" {
 }
 
 resource "helm_release" "alb-controller" {
-  name       = "aws-load-balancer-controller"
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "aws-load-balancer-controller"
-
-  namespace  = "kube-system"
   depends_on = [kubernetes_service_account.service-account]
+
+  name         = "aws-load-balancer-controller"
+  repository   = "https://aws.github.io/eks-charts"
+  chart        = "aws-load-balancer-controller"
+  version      = "~> 1.8.2"
+  force_update = true
+  namespace    = "kube-system"
 
   set {
     name  = "region"
@@ -71,22 +74,23 @@ resource "helm_release" "alb-controller" {
 }
 
 resource "kubernetes_service" "bmb-api-svc" {
-  depends_on = [ helm_release.alb-controller ]
-  metadata  {
-    name = "nlb-controller-service"
+  depends_on = [helm_release.alb-controller]
+  metadata {
+    name = "nlb-controller-svc"
     annotations = {
-      "service.beta.kubernetes.io/aws-load-balancer-name" = "${var.name}-nlb"
+      "service.beta.kubernetes.io/aws-load-balancer-name" = "${var.name}"
     }
   }
   spec {
     port {
-      port = 80
-      target_port = 80
-      protocol = "TCP"
+      port        = 80
+      target_port = 8080
+      node_port   = 30000
+      protocol    = "TCP"
     }
     type = "LoadBalancer"
     selector = {
-      app: "nginx"
+      app : "bmb-api"
     }
   }
 }

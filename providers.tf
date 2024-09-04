@@ -12,6 +12,14 @@ provider "aws" {
   profile = var.profile
   region  = var.region
   alias   = "us-east-1"
+  # access_key = var.access_key
+  # secret_key = var.secret_key
+
+  default_tags {
+    tags = {
+      ManagedBy = "Terraform"
+    }
+  }
 }
 
 provider "kubernetes" {
@@ -26,6 +34,9 @@ provider "kubernetes" {
 }
 
 provider "helm" {
+  # https://github.com/hashicorp/terraform-provider-helm/issues/630#issuecomment-996682323
+  repository_config_path = "${path.module}/.helm/repositories.yaml"
+  repository_cache       = "${path.module}/.helm"
   kubernetes {
     host                   = module.eks.cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
