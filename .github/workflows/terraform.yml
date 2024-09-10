@@ -126,11 +126,16 @@ jobs:
     - name: Terraform Init
       run: terraform init -upgrade
 
+
     - name: Create .auto.tfvars file
       run: |
-        echo "cluster_name = \"italoeks\"" > eks.auto.tfvars
-    # echo "region = \"us-west-2\"" >> ${{ github.workspace }}/.auto.tfvars
-    # echo "instance_type = \"t2.micro\"" >> ${{ github.workspace }}/.auto.tfvars
+        cat <<EOF > eks.auto.tfvars
+        eks_vpc_name = \"${{ vars.BMB_EKS_VPC_NAME }}\"
+        cluster_name = \"${{ vars.BMB_EKS_CLUSTER_NAME }}\"
+        nlb_name = \"${{ vars.BMB_INTERNAL_LB_NAME }}\"
+        secret_key = \"${{ secrets.BMB_JWT_SECRET_KEY }}\"
+        EOF
+
 
     # On push to "main", build or change infrastructure according to Terraform configuration files
     # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
