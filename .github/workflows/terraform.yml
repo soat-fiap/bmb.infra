@@ -58,7 +58,7 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: [test]
     environment: dev
-    name: "Terraform Plan"
+    name: "Terraform Plan & Update PR"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -74,7 +74,7 @@ jobs:
           cluster_name = "${{ vars.BMB_EKS_CLUSTER_NAME }}"
           nlb_name = "${{ vars.BMB_INTERNAL_LB_NAME }}"
           EOF
-  
+
       - name: Upload Configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.1
         id: plan-upload
@@ -113,11 +113,11 @@ jobs:
               return comment.user.type === 'Bot' && comment.body.includes('Terraform Cloud Plan Output')
             });
             const output = `#### Terraform Cloud Plan Output
-                \`\`\`
-                Plan: ${{ steps.plan-output.outputs.add }} to add, ${{ steps.plan-output.outputs.change }} to change, ${{ steps.plan-output.outputs.destroy }} to destroy.
-                \`\`\`
-                [Terraform Cloud Plan](${{ steps.plan-run.outputs.run_link }})
-                `;
+               \`\`\`
+               Plan: ${{ steps.plan-output.outputs.add }} to add, ${{ steps.plan-output.outputs.change }} to change, ${{ steps.plan-output.outputs.destroy }} to destroy.
+               \`\`\`
+               [Terraform Cloud Plan](${{ steps.plan-run.outputs.run_link }})
+               `;
             // 3. Delete previous comment so PR timeline makes sense
             if (botComment) {
               github.rest.issues.deleteComment({
@@ -132,38 +132,6 @@ jobs:
               repo: context.repo.repo,
               body: output
             });
-            create-app:
-              if: github.ref == 'refs/heads/main'
-              needs: [build-docker-image]
-              name: "Terraform Apply"
-              runs-on: ubuntu-latest
-              environment: dev
-              permissions:
-                contents: read
-              steps:
-                - name: Checkout
-                  uses: actions/checkout@v4
-          
-                - name: Create .auto.tfvars file
-                  run: |
-                    cat <<EOF > eks.auto.tfvars
-                    user_pool_name = "${{ vars.BMB_USER_POOL_NAME }}"
-                    EOF
-          
-                - name: Upload Configuration
-                  uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.1
-                  id: apply-upload
-                  with:
-                    workspace: ${{ env.TF_WORKSPACE }}
-                    directory: ${{ env.CONFIG_DIRECTORY }}
-          
-                - name: Create Apply Run
-                  uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.1
-                  id: apply-run
-                  with:
-                    workspace: ${{ env.TF_WORKSPACE }}
-                    configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
-                    message: "Create Run from GitHub Actions CI ${{ github.sha }}"
 
   terraform-apply:
     if: github.ref == 'refs/heads/main'
