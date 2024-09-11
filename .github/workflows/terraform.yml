@@ -130,7 +130,7 @@ jobs:
     - name: Create .auto.tfvars file
       run: |
         cat <<EOF > eks.auto.tfvars
-        eks_vpc_name = "${{ vars.BMB_EKS_VPC_NAME }}"
+        eks_vpc_name = "${{ vars.BMB_EKS_CLUSTER_VPC }}"
         cluster_name = "${{ vars.BMB_EKS_CLUSTER_NAME }}"
         nlb_name = "${{ vars.BMB_INTERNAL_LB_NAME }}"
         EOF
