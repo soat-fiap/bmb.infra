@@ -9,10 +9,12 @@ on:
       name:
         description: "Manual deploy"
         default: "Manual deploy"
-
-permissions:
-  contents: read
-  pull-requests: write
+        
+env:
+  TF_CLOUD_ORGANIZATION: "${{ vars.BMB_TF_ORGANIZATION }}"
+  TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
+  TF_WORKSPACE: "${{ vars.TF_WORKSPACE }}"
+  CONFIG_DIRECTORY: "./"
 
 jobs:
 
@@ -52,83 +54,116 @@ jobs:
     - name: Terraform Test
       run: terraform test
 
-    - uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
-      env:
-        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          // 1. Retrieve existing bot comments for the PR
-          const { data: comments } = await github.rest.issues.listComments({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-          })
-          const botComment = comments.find(comment => {
-            return comment.user.type === 'Bot' && comment.body.includes('Terraform Format and Style')
-          })
-    
-          // 2. Prepare format of the comment
-          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-          <details><summary>Validation Output</summary>
-    
-          \`\`\`\n
-          ${{ steps.validate.outputs.stdout }}
-          \`\`\`
-    
-          </details>
-    
-          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-    
-          // 3. If we have a comment, update it, otherwise create a new one
-          if (botComment) {
-            github.rest.issues.updateComment({
+  terraform-plan:
+    if: github.event_name == 'pull_request'
+    needs: [test]
+    environment: dev
+    name: "Terraform Plan & Update PR"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .auto.tfvars file
+        run: |
+          cat <<EOF > eks.auto.tfvars
+          eks_vpc_name = "${{ vars.BMB_EKS_CLUSTER_VPC }}"
+          cluster_name = "${{ vars.BMB_EKS_CLUSTER_NAME }}"
+          nlb_name = "${{ vars.BMB_INTERNAL_LB_NAME }}"
+          EOF
+
+      - name: Upload Configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.1
+        id: plan-upload
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.CONFIG_DIRECTORY }}
+          speculative: true
+
+      - name: Create Plan Run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.1
+        id: plan-run
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.plan-upload.outputs.configuration_version_id }}
+          plan_only: true
+
+      - name: Get Plan Output
+        uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.3.1
+        id: plan-output
+        with:
+          plan: ${{ fromJSON(steps.plan-run.outputs.payload).data.relationships.plan.data.id }}
+
+      - name: Update PR
+        uses: actions/github-script@v7
+        id: plan-comment
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              comment_id: botComment.id,
-              body: output
-            })
-          } else {
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Terraform Cloud Plan Output')
+            });
+            const output = `#### Terraform Cloud Plan Output
+               \`\`\`
+               Plan: ${{ steps.plan-output.outputs.add }} to add, ${{ steps.plan-output.outputs.change }} to change, ${{ steps.plan-output.outputs.destroy }} to destroy.
+               \`\`\`
+               [Terraform Cloud Plan](${{ steps.plan-run.outputs.run_link }})
+               `;
+            // 3. Delete previous comment so PR timeline makes sense
+            if (botComment) {
+              github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+              });
+            }
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: output
-            })
-          }
+            });
 
-  terraform:
-    needs: test
-    name: 'Apply'
+  terraform-apply:
+    if: github.ref == 'refs/heads/main'
+    needs: [test]
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
     environment: dev
-
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    defaults:
-      run:
-        shell: bash
-
+    permissions:
+      contents: read
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Create .auto.tfvars file
+        run: |
+          cat <<EOF > eks.auto.tfvars
+          eks_vpc_name = "${{ vars.BMB_EKS_CLUSTER_VPC }}"
+          cluster_name = "${{ vars.BMB_EKS_CLUSTER_NAME }}"
+          nlb_name = "${{ vars.BMB_INTERNAL_LB_NAME }}"
+          EOF
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      run: terraform init -upgrade
+      - name: Upload Configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.1
+        id: apply-upload
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.CONFIG_DIRECTORY }}
 
-    # On push to "main", build or change infrastructure according to Terraform configuration files
-    # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
-      # && ( github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-      run: terraform apply -input=false
+      - name: Create Apply Run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.1
+        id: apply-run
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
+          message: "Create Run from GitHub Actions CI ${{ github.sha }}"
