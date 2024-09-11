@@ -1,12 +1,3 @@
-terraform {
-  backend "remote" {
-    organization = "FiapPostech-SOAT"
-    workspaces {
-      name = "bmb-infra"
-    }
-  }
-}
-
 module "vpc" {
   source = "./modules/vpc"
 
