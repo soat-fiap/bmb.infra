@@ -167,3 +167,10 @@ jobs:
           workspace: ${{ env.TF_WORKSPACE }}
           configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
           message: "Create Run from GitHub Actions CI ${{ github.sha }}"
+
+      - uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.1
+        if: ${{ vars.TF_AUTO_APPROVE == 'true' }}
+        id: apply
+        with:
+          run: ${{ steps.apply-run.outputs.run_id }}
+          comment: "Confirmed from GitHub Actions CI ${{ github.sha }}"
