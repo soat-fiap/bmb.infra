@@ -45,3 +45,7 @@ The architecture consists of the following components:
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
+## This repo on the infrastructure
+
+![Architecture Diagram](aws-infra-phase-3.png)
