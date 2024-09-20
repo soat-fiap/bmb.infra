@@ -75,6 +75,7 @@ metadata:
   labels:
     app: bmb-api
 spec:
+  automountServiceAccountToken: false
   replicas: 1
   selector:
     matchLabels:
@@ -87,3 +88,10 @@ spec:
       containers:
         - name: bmb-api-container
           image: italopessoa/sampleapi:v2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
