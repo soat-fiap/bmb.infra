@@ -31,7 +31,10 @@ module "eks" {
   control_plane_subnet_ids = var.private_subnets
 
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.medium"]
+    instance_types = ["t3.medium"]  
+      iam_role_additional_policies = {
+        "AmazonSQSFullAccess" = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+      }
   }
 
   eks_managed_node_groups = {
