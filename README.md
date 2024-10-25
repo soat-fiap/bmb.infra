@@ -1,4 +1,4 @@
-# bmb.infra (deploy)
+# bmb.infra (deplo2y)
 [![Terraform](https://github.com/soat-fiap/bmb.infra/actions/workflows/terraform.yml/badge.svg?branch=main)](https://github.com/soat-fiap/bmb.infra/actions/workflows/terraform.yml)
 
 ## Overview
