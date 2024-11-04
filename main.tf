@@ -38,14 +38,18 @@ resource "kubernetes_namespace" "fiap_log" {
 
 resource "kubernetes_service" "svc_seq" {
   metadata {
-    name      = "svc-seq"
+    name      = "api-internal"
     namespace = kubernetes_namespace.fiap_log.metadata.0.name
     labels = {
       "terraform" = true
     }
+    annotations = {
+      "service.beta.kubernetes.io/aws-load-balancer-type"   = "nlb"
+      "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+    }
   }
   spec {
-    type = "NodePort"
+    type = "LoadBalancer"
     port {
       port      = 80
       node_port = 30008
