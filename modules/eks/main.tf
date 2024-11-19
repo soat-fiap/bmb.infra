@@ -9,7 +9,7 @@ module "eks" {
 
   create_kms_key              = false
   create_cloudwatch_log_group = true
-  enabled_cluster_log_types = [ "api", "audit", "authenticator", "controllerManager", "scheduler" ]
+  cluster_enabled_log_types = [ "api", "audit", "authenticator", "controllerManager", "scheduler" ]
   cloudwatch_log_group_retention_in_days = 2
   cluster_encryption_config   = {}
 
