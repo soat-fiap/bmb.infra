@@ -27,7 +27,7 @@ module "eks" {
     eks-pod-identity-agent = {
       most_recent = true
     }
-    amazon-cloudWatch-observability = {
+    amazon-cloudwatch-observability = {
       most_recent = true
     }
   }
