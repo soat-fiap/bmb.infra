@@ -40,6 +40,7 @@ module "eks" {
       iam_role_additional_policies = {
         "AmazonSQSFullAccess" = "arn:aws:iam::aws:policy/AmazonSQSFullAccess",
         "AmazonSNSFullAccess" = "arn:aws:iam::aws:policy/AmazonSNSFullAccess",
+        "AmazonS3FullAccess" = "arn:aws:iam::aws:policy/AmazonS3FullAccess",
         "CloudWatchAgentServerPolicy" = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
       }
   }
